@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Attendance Summary</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .chart-container {
+            width: 100%;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Employee Attendance Summary</h1>
+        <form id="viewAttendanceForm">
+            <label for="employeeName">Enter Name:</label>
+            <input type="text" id="employeeName" name="employeeName" required>
+
+            <button type="button" onclick="showAttendanceSummary()">View Summary</button>
+        </form>
+        
+        <div id="summary" style="display: none;">
+            <h3>Attendance Summary for <span id="summaryName"></span></h3>
+            <p>Total Present: <span id="totalPresent"></span></p>
+            <p>Total Absent: <span id="totalAbsent"></span></p>
+            <p>Total Leave: <span id="totalLeave"></span></p>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="chart-container" style="display: none;">
+            <canvas id="attendancePieChart"></canvas>
+            <canvas id="attendanceBarChart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Show attendance summary and charts for an employee
+        function showAttendanceSummary() {
+            const employeeName = document.getElementById('employeeName').value;
+            let records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+            const filteredRecords = records.filter(record => record.name.toLowerCase() === employeeName.toLowerCase());
+
+            const totalPresent = filteredRecords.filter(record => record.attendance === 'Present').length;
+            const totalAbsent = filteredRecords.filter(record => record.attendance === 'Absent').length;
+            const totalLeave = filteredRecords.filter(record => record.attendance === 'Leave').length;
+
+            document.getElementById('summaryName').textContent = employeeName;
+            document.getElementById('totalPresent').textContent = totalPresent;
+            document.getElementById('totalAbsent').textContent = totalAbsent;
+            document.getElementById('totalLeave').textContent = totalLeave;
+
+            document.getElementById('summary').style.display = 'block';
+            displayCharts(totalPresent, totalAbsent, totalLeave);
+        }
+
+        // Display pie and bar charts
+        function displayCharts(totalPresent, totalAbsent, totalLeave) {
+            const ctxPie = document.getElementById('attendancePieChart').getContext('2d');
+            const ctxBar = document.getElementById('attendanceBarChart').getContext('2d');
+
+            const pieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Present', 'Absent', 'Leave'],
+                    datasets: [{
+                        data: [totalPresent, totalAbsent, totalLeave],
+                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    }
+                }
+            });
+
+            const barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Attendance'],
+                    datasets: [
+                        {
+                            label: 'Present',
+                            data: [totalPresent],
+                            backgroundColor: '#28a745',
+                        },
+                        {
+                            label: 'Absent',
+                            data: [totalAbsent],
+                            backgroundColor: '#dc3545',
+                        },
+                        {
+                            label: 'Leave',
+                            data: [totalLeave],
+                            backgroundColor: '#ffc107',
+                        },
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            document.querySelector('.chart-container').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
